@@ -1,0 +1,104 @@
+{
+  "name": "dub",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/dub",
+  "projectType": "application",
+  "targets": {
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/dub",
+        "command": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\""
+      }
+    },
+    "format:write": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/dub",
+        "command": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\""
+      }
+    },
+    "prebuild": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/dub",
+        "command": "prisma generate"
+      }
+    },
+    "predev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/dub",
+        "command": "prisma generate"
+      }
+    },
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "root": "packages/dub",
+        "outputPath": "dist/packages/dub"
+      },
+      "configurations": {
+        "development": {
+          "outputPath": "packages/dub"
+        },
+        "production": {}
+      }
+    },
+    "serve-og": {
+      "executor": "@nx/next:server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "dub:build",
+        "dev": true
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "dub:build:development",
+          "dev": true
+        },
+        "production": {
+          "buildTarget": "dub:build:production",
+          "dev": false
+        }
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/dub",
+        "command": "next dev"
+      }
+    },
+    "export": {
+      "executor": "@nx/next:export",
+      "options": {
+        "buildTarget": "dub:build:production"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/dub/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/dub/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  },
+  "tags": []
+}
