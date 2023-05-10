@@ -86,7 +86,7 @@ const computedFields = (type: "changelog" | "blog") => ({
 });
 
 export default makeSource({
-  contentDirPath: "./packages/dub/posts",
+  contentDirPath: "posts",
   documentTypes: [ChangelogPost],
   mdx: {
     remarkPlugins: [remarkGfm],
