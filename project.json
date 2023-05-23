@@ -37,22 +37,22 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "root": "packages/dub",
-        "outputPath": "dist/packages/dub"
+        "root": "packages/dub/",
+        "outputPath": "dist/packages/dub",
+        "debug": true
       },
       "configurations": {
-        "development": {
-          "outputPath": "packages/dub"
-        },
+        "development": {},
         "production": {}
       }
     },
-    "serve-og": {
+    "serve": {
       "executor": "@nx/next:server",
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "dub:build",
-        "dev": true
+        "dev": true,
+        "turbo": true
       },
       "configurations": {
         "development": {
@@ -65,16 +65,10 @@
         }
       }
     },
-    "serve": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "packages/dub",
-        "command": "next dev"
-      }
-    },
     "export": {
       "executor": "@nx/next:export",
       "options": {
+        "cwd": "packages/dub",
         "buildTarget": "dub:build:production"
       }
     },
