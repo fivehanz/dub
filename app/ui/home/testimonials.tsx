@@ -1,15 +1,21 @@
-import { conn } from "@/lib/planetscale";
+import { unstable_cache } from "next/cache";
+import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
 import getTweetsMetadata, { homepageTweets } from "#/lib/twitter";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Tweet from "#/ui/tweet";
+import TestimonialsMobile from "./testimonials-mobile";
 
 export default async function Testimonials() {
-  const userCount = conn
-    ? // await prisma.user.count()
-      (await conn.execute("SELECT COUNT(id) FROM User")).rows[0]["count(id)"]
-    : 5000;
-
+  const userCount = await unstable_cache(
+    async () => {
+      return prisma.user.count();
+    },
+    [],
+    {
+      revalidate: 300,
+    },
+  )();
   const tweets = await getTweetsMetadata(homepageTweets);
 
   return (
@@ -25,8 +31,9 @@ export default async function Testimonials() {
           Don't take it from us - here's what our users have to say about Dub.
         </p>
       </div>
-      <div className="space-y-6 py-8 sm:columns-2 sm:gap-6 xl:columns-3">
-        {tweets.filter(Boolean).map((tweet, idx) => (
+      <TestimonialsMobile tweets={tweets} />
+      <div className="hidden space-y-6 py-8 sm:block sm:columns-2 sm:gap-6 xl:columns-3">
+        {tweets.map((tweet, idx) => (
           <Tweet
             key={idx}
             metadata={JSON.stringify(tweet)}
