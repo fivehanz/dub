@@ -13,7 +13,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import Switch from "#/ui/switch";
 import Link from "next/link";
 import { StatsContext } from ".";
@@ -32,7 +32,7 @@ export default function Toggle() {
 
   return (
     <div
-      className={`z-20 mb-5 ${
+      className={`z-10 mb-5 ${
         basePath.startsWith("/stats")
           ? `top-0 ${!modal ? "md:top-16" : ""}`
           : "top-[6.95rem]"
@@ -98,10 +98,10 @@ export default function Toggle() {
 const SharePopover = () => {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { endpoint, domain, key } = useContext(StatsContext);
+  const { endpoint, domain, key, queryString } = useContext(StatsContext);
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    `${endpoint}?domain=${domain}`,
+    `${endpoint}${queryString}`,
     fetcher,
   );
 
@@ -111,7 +111,7 @@ const SharePopover = () => {
     toast.promise(
       new Promise<void>(async (resolve) => {
         setUpdating(true);
-        const res = await fetch(`${endpoint}?domain=${domain}`, {
+        const res = await fetch(`${endpoint}${queryString}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -121,7 +121,7 @@ const SharePopover = () => {
           }),
         });
         if (res.status === 200) {
-          mutate(`${endpoint}?domain=${domain}`);
+          mutate(`${endpoint}${queryString}`);
           // artificial delay to sync toast with the switch change
           await new Promise((r) => setTimeout(r, 200));
         }

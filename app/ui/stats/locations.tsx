@@ -25,7 +25,7 @@ export default function Locations() {
   );
 
   return (
-    <div className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+    <div className="relative z-0 h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex justify-between">
         <h1 className="text-xl font-semibold">Locations</h1>
         <BadgeSelect
@@ -49,6 +49,7 @@ export default function Locations() {
                 <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
                   <span className="z-10 flex items-center space-x-2 px-2">
                     <img
+                      alt={country}
                       src={`https://flag.vercel.app/m/${country}.svg`}
                       className="h-3 w-5"
                     />
