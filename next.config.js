@@ -2,6 +2,9 @@ const { withContentlayer } = require("next-contentlayer");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    esmExternals: "loose",
+  },
   reactStrictMode: false,
   images: {
     domains: [
