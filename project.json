@@ -32,21 +32,35 @@
         "command": "prisma generate"
       }
     },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/dub",
+        "command": "next dev --port 4200"
+      }
+    },
     "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/dub",
+        "command": "next build"
+      }
+    },
+    "build-og": {
       "executor": "@nx/next:build",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "root": "packages/dub/",
+        "root": "packages/dub",
         "outputPath": "dist/packages/dub",
-        "debug": true
+        "debug": false
       },
       "configurations": {
         "development": {},
         "production": {}
       }
     },
-    "serve": {
+    "serve-og": {
       "executor": "@nx/next:server",
       "defaultConfiguration": "development",
       "options": {

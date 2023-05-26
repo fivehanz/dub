@@ -7,29 +7,6 @@ export const LOCALHOST_GEO_DATA = {
 };
 export const LOCALHOST_IP = "63.141.56.109";
 
-export const INTERVALS = [
-  {
-    display: "Last hour",
-    slug: "1h",
-  },
-  {
-    display: "Last 24 hours",
-    slug: "24h",
-  },
-  {
-    display: "Last 7 days",
-    slug: "7d",
-  },
-  {
-    display: "Last 30 days",
-    slug: "30d",
-  },
-  {
-    display: "Last 3 months",
-    slug: "90d",
-  },
-];
-
 export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   hidden: { scale: 0.8, opacity: 0 },
   show: { scale: 1, opacity: 1, transition: { type: "spring" } },
@@ -69,6 +46,7 @@ export const APP_HOSTNAMES = new Set([
 
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",
+  dub: "https://dub.sh",
   signin: "https://app.dub.sh/login",
   login: "https://app.dub.sh/login",
   register: "https://app.dub.sh/register",
@@ -80,6 +58,7 @@ export const DEFAULT_REDIRECTS = {
   welcome: "https://app.dub.sh/welcome",
   slack: "https://dub.slack.com",
   discord: "https://twitter.com/dubdotsh", // placeholder for now
+  tags: "https://dub.sh/changelog/introducing-tags",
 };
 
 export const REDIRECT_HEADERS = {

@@ -29,6 +29,21 @@ export interface LinkProps {
   updatedAt?: Date;
 }
 
+export interface TagProps {
+  id: string;
+  name: string;
+  color: TagColorProps;
+}
+
+export type TagColorProps =
+  | "red"
+  | "yellow"
+  | "green"
+  | "blue"
+  | "purple"
+  | "pink"
+  | "brown";
+
 export type PlanProps = "free" | "pro" | "enterprise";
 
 export interface ProjectProps {
@@ -42,10 +57,9 @@ export interface ProjectProps {
   stripeId?: string;
   billingCycleStart?: number;
 
-  // TO DELETE
-  ownerUsageLimit?: number;
-  ownerExceededUsage?: boolean;
-
+  domains?: {
+    slug: string;
+  }[];
   users?: {
     role: string;
   }[];

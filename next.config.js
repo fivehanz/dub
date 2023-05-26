@@ -2,6 +2,9 @@ const { withContentlayer } = require("next-contentlayer");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    esmExternals: "loose",
+  },
   reactStrictMode: false,
   images: {
     domains: [
@@ -12,6 +15,7 @@ const nextConfig = {
       "res.cloudinary.com",
       "pbs.twimg.com",
       "d2vwwcvoksz7ty.cloudfront.net",
+      "media.cleanshot.cloud",
     ],
   },
   async headers() {

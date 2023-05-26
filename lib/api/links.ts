@@ -6,55 +6,6 @@ import { redis } from "@/lib/upstash";
 import { getParamsFromURL, isReservedKey, nanoid, truncate } from "@/lib/utils";
 import { NextApiRequest } from "next";
 
-const getFiltersFromStatus = (status: string) => {
-  if (status === "all" || status === "none") {
-    return {
-      archived: undefined,
-      expiresAt: undefined,
-    };
-  }
-  const selectedStatus = status.split(",");
-  const activeSelected = selectedStatus.includes("active");
-  const expiredSelected = selectedStatus.includes("expired");
-  const archivedSelected = selectedStatus.includes("archived");
-  return {
-    AND: [
-      {
-        // archived can be either true or false
-        archived:
-          archivedSelected && selectedStatus.length === 1
-            ? true
-            : !archivedSelected
-            ? false
-            : undefined,
-      },
-      {
-        OR: [
-          {
-            /* expiresAt can be either:
-              - null
-              - a date that's in the past 
-              - a date that's in the future
-            */
-            expiresAt:
-              expiredSelected && !activeSelected
-                ? { lt: new Date() }
-                : activeSelected && !expiredSelected
-                ? { gte: new Date() }
-                : undefined,
-          },
-          {
-            expiresAt: activeSelected && !expiredSelected ? null : undefined,
-          },
-          {
-            archived: archivedSelected && !activeSelected ? true : undefined,
-          },
-        ],
-      },
-    ],
-  };
-};
-
 export async function getLinksForProject({
   projectId,
   domain,
@@ -112,7 +63,7 @@ export async function getLinksCount({
   };
 
   if (groupBy) {
-    const inputs = await prisma.link.groupBy({
+    return await prisma.link.groupBy({
       by: [groupBy],
       where: {
         projectId,
@@ -122,12 +73,18 @@ export async function getLinksCount({
           key: { search },
           url: { search },
         }),
+        // when filtering by domain, only filter by domain if the filter group is not "Domains"
         ...(domain &&
           groupBy !== "domain" && {
             domain,
           }),
+        // when filtering by tagId, only filter by tagId if the filter group is not "Tags"
+        ...(tagId &&
+          groupBy !== "tagId" && {
+            tagId,
+          }),
+        // for the "Tags" filter group, only count links that have a tagId
         ...(groupBy === "tagId" && {
-          tagId,
           NOT: {
             tagId: null,
           },
@@ -140,27 +97,6 @@ export async function getLinksCount({
         },
       },
     });
-    if (groupBy === "tagId") {
-      // for tags, we need to get the tag name
-      const tags = await prisma.tag.findMany({
-        where: {
-          projectId,
-          id: {
-            // @ts-ignore
-            in: inputs.map((input) => input.tagId),
-          },
-        },
-      });
-      return inputs.map((input) => {
-        const tag = tags.find((tag) => tag.id === input.tagId)!;
-        return {
-          ...input,
-          tag: tag.name,
-        };
-      });
-    } else {
-      return inputs;
-    }
   } else {
     return await prisma.link.count({
       where: {
@@ -213,7 +149,7 @@ export async function checkIfKeyExists(domain: string, key: string) {
 }
 
 export async function addLink(link: LinkProps) {
-  const {
+  let {
     domain,
     key,
     url,
@@ -226,6 +162,8 @@ export async function addLink(link: LinkProps) {
     ios,
     android,
   } = link;
+  // remove leading and trailing slashes from key
+  key = key.replace(/^\/|\/$/g, "");
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -240,6 +178,7 @@ export async function addLink(link: LinkProps) {
     prisma.link.create({
       data: {
         ...link,
+        key,
         title: truncate(title, 120),
         description: truncate(description, 240),
         image: uploadedImage ? undefined : image,
@@ -286,8 +225,17 @@ export async function addLink(link: LinkProps) {
   return response;
 }
 
-export async function editLink(link: LinkProps, oldKey: string) {
-  const {
+export async function editLink(
+  link: LinkProps,
+  {
+    oldDomain,
+    oldKey,
+  }: {
+    oldDomain: string;
+    oldKey: string;
+  },
+) {
+  let {
     id,
     domain,
     key,
@@ -301,12 +249,15 @@ export async function editLink(link: LinkProps, oldKey: string) {
     ios,
     android,
   } = link;
+  // remove leading and trailing slashes from key
+  key = key.replace(/^\/|\/$/g, "");
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
+  const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
-  if (changedKey) {
+  if (changedDomain || changedKey) {
     const exists = await checkIfKeyExists(domain, key);
     if (exists) return null;
   }
@@ -320,6 +271,7 @@ export async function editLink(link: LinkProps, oldKey: string) {
       },
       data: {
         ...link,
+        key,
         title: truncate(title, 120),
         description: truncate(description, 240),
         image: uploadedImage ? undefined : image,
@@ -353,14 +305,14 @@ export async function editLink(link: LinkProps, oldKey: string) {
       exat ? { exat } : {},
     ),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
-    ...(changedKey
+    ...(changedDomain || changedKey
       ? [
           cloudinary.v2.uploader
-            .destroy(`${domain}/${oldKey}`, {
+            .destroy(`${oldDomain}/${oldKey}`, {
               invalidate: true,
             })
             .catch(() => {}),
-          redis.del(`${domain}:${oldKey}`),
+          redis.del(`${oldDomain}:${oldKey}`),
         ]
       : []),
   ]);

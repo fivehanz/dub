@@ -133,8 +133,9 @@ function AddEditLinkModal({
      * Only generate metatags if:
      * - modal is open
      * - custom OG proxy is not enabled
+     * - url is not empty
      **/
-    if (showAddEditLinkModal && !proxy) {
+    if (showAddEditLinkModal && !proxy && debouncedUrl.length > 0) {
       setData((prev) => ({
         ...prev,
         title: null,
@@ -186,7 +187,7 @@ function AddEditLinkModal({
       return {
         method: "PUT",
         url: `/api/links/${encodeURIComponent(props.key)}${
-          slug ? `?slug=${slug}&domain=${domain}` : ""
+          slug ? `?slug=${slug}&domain=${props.domain}` : ""
         }`,
       };
     } else {
@@ -251,7 +252,7 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={homepageDemo ? false : true}
     >
-      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide md:max-w-screen-lg md:grid-cols-2 md:overflow-hidden md:rounded-2xl md:border md:border-gray-200">
+      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto bg-white shadow-xl transition-all scrollbar-hide md:max-w-screen-lg md:grid-cols-2 md:overflow-hidden md:rounded-2xl md:border md:border-gray-200">
         {!hideXButton && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
@@ -262,7 +263,7 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="rounded-l-2xl md:max-h-[min(906px,_90vh)] md:overflow-scroll"
+          className="rounded-l-2xl scrollbar-hide md:max-h-[min(906px,_90vh)] md:overflow-auto"
           onScroll={handleScroll}
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
@@ -321,7 +322,8 @@ function AddEditLinkModal({
                       navigator.clipboard
                         .writeText(
                           linkConstructor({
-                            key: data.key,
+                            // remove leading and trailing slashes
+                            key: data.key.replace(/^\/|\/$/g, ""),
                             domain,
                           }),
                         )
@@ -539,7 +541,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="rounded-r-2xl md:max-h-[min(906px,_90vh)] md:overflow-scroll">
+        <div className="rounded-r-2xl scrollbar-hide md:max-h-[min(906px,_90vh)] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
@@ -589,8 +591,8 @@ function AddEditLinkButton({
       content={
         <TooltipContent
           title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta="Upgrade"
-          ctaLink={`/${slug}/settings/billing`}
+          cta="Upgrade to Pro"
+          href={`/${slug}/settings/billing`}
         />
       }
     >
@@ -638,14 +640,7 @@ export function useAddEditLinkModal({
         homepageDemo={homepageDemo}
       />
     );
-  }, [
-    showAddEditLinkModal,
-    setShowAddEditLinkModal,
-    props,
-    duplicateProps,
-    hideXButton,
-    homepageDemo,
-  ]);
+  }, [showAddEditLinkModal, setShowAddEditLinkModal]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return (
